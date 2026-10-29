@@ -1,11 +1,14 @@
-# OPTIONAL fallback. Use this ONLY if your Vercel plan cannot run the cron three times a day.
-# If you enable the schedule below, remove the "crons" block from vercel.json so it runs once.
-# Repo secrets needed: APP_URL (e.g. https://your-app.vercel.app) and CRON_SECRET.
+# Hobby-plan companion to the Vercel Cron job in vercel.json (which runs the 07:00 UTC refresh).
+# This workflow adds the 13:00 and 19:00 UTC refreshes (16:00 and 22:00 Cairo summer time).
+# One-time setup: GitHub repo -> Settings -> Secrets and variables -> Actions, add:
+#   APP_URL      e.g. https://your-app.vercel.app   (no trailing slash)
+#   CRON_SECRET  the same value as the CRON_SECRET environment variable on Vercel
+# GitHub may start scheduled runs a few minutes late; that is fine for metrics.
 name: Refresh social metrics
 on:
   workflow_dispatch: {}
-  # schedule:
-  #   - cron: "0 7,13,19 * * *"
+  schedule:
+    - cron: "0 13,19 * * *"
 jobs:
   refresh:
     runs-on: ubuntu-latest

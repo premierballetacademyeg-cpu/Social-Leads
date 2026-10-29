@@ -28,8 +28,9 @@ Remove: `OWNER_OPEN_ID`, `VITE_APP_ID`, `OAUTH_SERVER_URL`, `VITE_OAUTH_PORTAL_U
 Keep `META_SEND_ENABLED` OFF until the preview checks pass.
 
 ## Project settings
-Framework preset **Other**. `vercel.json` already sets install/build commands, output folder, rewrites and the cron schedule.
-Vercel runs cron jobs on **production** deployments only, and the plan may limit how often. If you cannot run it three times a day, use `.github/workflows/metrics-refresh.yml` instead and remove `crons` from `vercel.json`.
+Framework preset **Other**. `vercel.json` already sets install/build commands, output folder and routing.
+
+**Scheduled refresh on the Hobby plan:** Vercel Cron runs once a day, so the work is split. Vercel Cron does 07:00 UTC (in `vercel.json`); the GitHub Actions workflow `.github/workflows/metrics-refresh.yml` does 13:00 and 19:00 UTC. Add the repo secrets `APP_URL` and `CRON_SECRET` (same value as on Vercel). Cron jobs run on **production** deployments only.
 
 ## After deploying
 1. Sign in at `/login`.

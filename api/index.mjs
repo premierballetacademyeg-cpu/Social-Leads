@@ -1374,16 +1374,18 @@ async function syncOfficialFaqs() {
 
 // server/social/schedule.ts
 init_db();
-var SOCIAL_METRICS_CRON = "0 7,13,19 * * *";
+var SOCIAL_METRICS_CRON = "0 7 * * *";
+var SOCIAL_METRICS_EXTRA_CRON = "0 13,19 * * *";
 var SOCIAL_METRICS_PATH = "/api/scheduled/refresh-social-metrics";
 async function getMetricsScheduleStatus() {
   const latest = await getLatestMetricCollectedAt();
   return {
     cron: SOCIAL_METRICS_CRON,
+    extraCron: SOCIAL_METRICS_EXTRA_CRON,
     path: SOCIAL_METRICS_PATH,
     cronSecretConfigured: Boolean(process.env.CRON_SECRET && process.env.CRON_SECRET.length >= 16),
     lastCollectedAt: latest,
-    utcSchedule: "07:00, 13:00, 19:00 UTC"
+    utcSchedule: "07:00 UTC (Vercel Cron), 13:00 and 19:00 UTC (GitHub Actions)"
   };
 }
 
