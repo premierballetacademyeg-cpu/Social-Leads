@@ -1,4 +1,4 @@
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME } from "../shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, publicProcedure, router } from "./_core/trpc";
@@ -10,11 +10,8 @@ import {
   metaReadinessWithStoredAccounts,
 } from "./social/meta";
 import { refreshSocialMetrics } from "./social/metrics";
-import { seedInitialFaqs } from "./social/seed";
-import {
-  activateMetricsSchedule,
-  getMetricsScheduleStatus,
-} from "./social/schedule";
+import { syncOfficialFaqs } from "./social/seed";
+import { getMetricsScheduleStatus } from "./social/schedule";
 import {
   browserUseReadiness,
   cancelBrowserUseRun,
@@ -71,7 +68,7 @@ export const appRouter = router({
         z.object({ id: z.number().int().positive(), data: faqInput.partial() })
       )
       .mutation(({ input }) => db.updateFaqEntry(input.id, input.data)),
-    seedOfficial: adminProcedure.mutation(() => seedInitialFaqs()),
+    syncOfficial: adminProcedure.mutation(() => syncOfficialFaqs()),
   }),
   imports: router({
     list: adminProcedure.query(() => db.listInboxImports()),
@@ -108,9 +105,6 @@ export const appRouter = router({
   }),
   schedules: router({
     metricsStatus: adminProcedure.query(() => getMetricsScheduleStatus()),
-    activateMetrics: adminProcedure.mutation(({ ctx }) =>
-      activateMetricsSchedule(ctx.req.headers.cookie)
-    ),
   }),
   notifications: router({
     list: adminProcedure.query(() => db.listStaffNotifications()),

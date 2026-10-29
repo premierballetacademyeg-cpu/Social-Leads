@@ -19,7 +19,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { startLogin } from "@/const";
+import { LOGIN_PATH } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useMobile";
 import { trpc } from "@/lib/trpc";
@@ -73,7 +73,9 @@ export default function DashboardLayout({
             review historical messages, and monitor social conversations.
           </p>
           <Button
-            onClick={() => startLogin()}
+            onClick={() => {
+              window.location.href = LOGIN_PATH;
+            }}
             className="mt-8 bg-[#d4b07a] text-[#102a37] hover:bg-[#e0c08c]"
           >
             Sign in securely <ChevronRight className="ml-1 h-4 w-4" />
@@ -106,6 +108,10 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const markAllRead = trpc.notifications.markAllRead.useMutation({
     onSuccess: () => utils.notifications.list.invalidate(),
   });
+  // Unread warning/critical items are pinned across the top of the app while it is open.
+  const urgent = (notifications.data?.notifications ?? [])
+    .filter(item => !item.readAt && item.severity !== "info")
+    .slice(0, 3);
 
   return (
     <>
@@ -269,6 +275,41 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        {urgent.length > 0 && (
+          <div role="alert" aria-live="assertive">
+            {urgent.map(item => (
+              <div
+                key={item.id}
+                className={`flex items-start gap-3 px-4 py-2.5 pr-16 text-sm sm:px-6 sm:pr-20 ${item.severity === "critical" ? "bg-[#f6dede] text-[#7d2b2b]" : "bg-[#f7e7c4] text-[#6f4e12]"}`}
+              >
+                <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <span className="font-medium">{item.title}</span>
+                  {item.detail ? (
+                    <span className="ml-2 opacity-80">{item.detail}</span>
+                  ) : null}
+                </div>
+                {item.href ? (
+                  <button
+                    className="shrink-0 underline"
+                    onClick={() => {
+                      markRead.mutate({ id: item.id });
+                      setLocation(item.href as string);
+                    }}
+                  >
+                    View
+                  </button>
+                ) : null}
+                <button
+                  className="shrink-0 underline"
+                  onClick={() => markRead.mutate({ id: item.id })}
+                >
+                  Dismiss
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         {isMobile && (
           <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-[#d8cbb8] bg-[#f6f0e6]/95 px-4 backdrop-blur">
             <SidebarTrigger className="text-[#102a37]" />

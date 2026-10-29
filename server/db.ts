@@ -19,7 +19,6 @@ import {
   users,
   webhookDeliveries,
 } from "../drizzle/schema";
-import { sendNtfy } from "./social/ntfy";
 import type { FaqSeed } from "./social/types";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -66,13 +65,43 @@ export async function getUserByOpenId(
   )[0];
 }
 
+// Startup seeding: inserts missing official FAQs only and never overwrites live rows,
+// so edits made by staff in the dashboard survive restarts.
 export async function ensureInitialFaqs(seeds: FaqSeed[]) {
   const db = await requireDb();
   for (const seed of seeds)
     await db
       .insert(faqEntries)
-      .values({ ...seed, status: "approved" })
-      .onDuplicateKeyUpdate({ set: { updatedAt: new Date() } });
+      .values({ ...seed, status: seed.status ?? "approved" })
+      .onDuplicateKeyUpdate({ set: { slug: seed.slug } });
+}
+
+// Explicit staff action: makes the live official FAQs match the approved set exactly
+// (overwrites text, keywords and status for every official slug).
+export async function syncOfficialFaqEntries(seeds: FaqSeed[]) {
+  const db = await requireDb();
+  for (const seed of seeds) {
+    const values = { ...seed, status: seed.status ?? "approved" };
+    await db
+      .insert(faqEntries)
+      .values(values)
+      .onDuplicateKeyUpdate({ set: values });
+  }
+  return {
+    approved: seeds.filter(seed => (seed.status ?? "approved") === "approved").length,
+    archived: seeds.filter(seed => seed.status === "archived").length,
+  };
+}
+
+export async function getLatestMetricCollectedAt() {
+  const db = await getDb();
+  if (!db) return null;
+  const [row] = await db
+    .select({ collectedAt: metricSnapshots.collectedAt })
+    .from(metricSnapshots)
+    .orderBy(desc(metricSnapshots.collectedAt))
+    .limit(1);
+  return row?.collectedAt ?? null;
 }
 export async function getApprovedFaqEntries(): Promise<FAQEntry[]> {
   const db = await requireDb();
@@ -479,8 +508,6 @@ export async function createStaffNotification(input: {
 }) {
   const db = await requireDb();
   const [result] = await db.insert(staffNotifications).values(input);
-  // Best-effort phone push; sendNtfy never throws and is skipped when unconfigured.
-  void sendNtfy(input);
   return Number(result.insertId);
 }
 export async function listStaffNotifications() {

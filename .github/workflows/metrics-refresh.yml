@@ -1,0 +1,17 @@
+# OPTIONAL fallback. Use this ONLY if your Vercel plan cannot run the cron three times a day.
+# If you enable the schedule below, remove the "crons" block from vercel.json so it runs once.
+# Repo secrets needed: APP_URL (e.g. https://your-app.vercel.app) and CRON_SECRET.
+name: Refresh social metrics
+on:
+  workflow_dispatch: {}
+  # schedule:
+  #   - cron: "0 7,13,19 * * *"
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the metrics refresh endpoint
+        run: |
+          curl --fail --silent --show-error -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.APP_URL }}/api/scheduled/refresh-social-metrics"

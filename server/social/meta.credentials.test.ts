@@ -1,10 +1,11 @@
+// Live-credential checks: skipped automatically unless META_PAGE_ACCESS_TOKEN is set.
 import { describe, expect, it } from "vitest";
 
 const graphBase = process.env.META_GRAPH_API_BASE ?? "https://graph.facebook.com/v26.0";
 const instagramGraphBase = process.env.META_INSTAGRAM_API_BASE ?? "https://graph.instagram.com/v26.0";
 const academyPageId = process.env.META_PAGE_ID ?? "1097461780292447";
 
-describe("Meta Page token validation", () => {
+describe.skipIf(!process.env.META_PAGE_ACCESS_TOKEN)("Meta Page token validation", () => {
   it("validates that the supplied credential is accepted by Meta", async () => {
     const token = process.env.META_PAGE_ACCESS_TOKEN;
     expect(token, "META_PAGE_ACCESS_TOKEN must be configured").toBeTruthy();
@@ -25,7 +26,7 @@ describe("Meta Page token validation", () => {
   }, 20_000);
 });
 
-describe("Instagram token validation", () => {
+describe.skipIf(!process.env.META_PAGE_ACCESS_TOKEN)("Instagram token validation", () => {
   it("validates the generated Instagram API token", async () => {
     const token = process.env.META_INSTAGRAM_ACCESS_TOKEN;
     expect(token, "META_INSTAGRAM_ACCESS_TOKEN must be configured").toBeTruthy();
@@ -36,7 +37,7 @@ describe("Instagram token validation", () => {
   }, 20_000);
 });
 
-describe("Live reply authorization", () => {
+describe.skipIf(!process.env.META_PAGE_ACCESS_TOKEN)("Live reply authorization", () => {
   it("is explicitly enabled only when the approved Meta Page credential remains valid", async () => {
     expect(process.env.META_SEND_ENABLED).toBe("true");
     const token = process.env.META_PAGE_ACCESS_TOKEN;

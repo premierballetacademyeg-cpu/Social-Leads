@@ -10,11 +10,13 @@ import FaqLibrary from "./pages/FaqLibrary";
 import Home from "./pages/Home";
 import InboxImport from "./pages/InboxImport";
 import Integrations from "./pages/Integrations";
+import Login from "./pages/Login";
 import Publisher from "./pages/Publisher";
 
 function Router() {
   return (
     <Switch>
+      <Route path="/login" component={Login} />
       <Route path="/" component={Home} />
       <Route path="/faqs" component={FaqLibrary} />
       <Route path="/imports" component={InboxImport} />

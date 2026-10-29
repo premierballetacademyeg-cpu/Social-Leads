@@ -35,4 +35,6 @@ export type FaqSeed = {
   keywordsAr: string[];
   intentAliases: string[];
   sortOrder: number;
+  /** Defaults to "approved". Archived FAQs are kept but never answered by the bot. */
+  status?: "approved" | "archived";
 };
